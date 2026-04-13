@@ -1,24 +1,44 @@
 import 'dotenv/config';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import mongoose from 'mongoose';
+import { assertAuthEnv } from './config/auth.js';
 import { connectDB } from './config/database.js';
 import './models/index.js';
-import healthRouter from './routes/health.route.js';
 import { registerRoutes } from './routes/index.js';
+import { commonErrorHandler } from './utils/errorHandler.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
-app.use(cors());
+const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+
+app.use(
+  cors({
+    origin: clientOrigin,
+    credentials: true,
+  }),
+);
 app.use(express.json());
+app.use(cookieParser());
 
 async function start() {
   try {
+    assertAuthEnv();
     await connectDB();
     await registerRoutes(app);
-    // Unversioned health URL (common for load balancers); also available at /api/v1/health
-    app.use('/api/health', healthRouter);
+
+    app.use((err, req, res, _next) => {
+      console.error(err);
+      return commonErrorHandler(
+        req,
+        res,
+        err.message,
+        err.statusCode ?? 500,
+        err,
+      );
+    });
 
     app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);
