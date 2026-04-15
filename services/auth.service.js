@@ -47,12 +47,17 @@ export async function login(payload) {
     throw CustomException('Validation failed', 400, formatZodIssues(parsed.error));
   }
 
+
   const { email, password } = parsed.data;
   const user = await User.findOne({ email, deletedAt: null }).select('+passwordHash');
-  const valid = user && (await bcrypt.compare(password, user.passwordHash));
 
+  if (!user) {
+    throw CustomException('Account not found', 404);
+  }
+
+  const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
-    throw CustomException('Invalid email or password', 401);
+    throw CustomException('Invalid credentials', 403);
   }
 
   const userId = user._id.toString();
