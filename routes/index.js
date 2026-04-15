@@ -54,9 +54,12 @@ export async function registerRoutes(expressInstance) {
   const routeFiles = collectRouteFiles(ROUTES_ROOT);
 
   for (const filePath of routeFiles) {
-    const mountSuffix = mountSuffixFromFile(ROUTES_ROOT, filePath);
     const mod = await import(pathToFileURL(filePath).href);
     const router = mod.default;
+    const mountSuffix =
+      typeof mod.routeBase === 'string' && mod.routeBase.trim()
+        ? mod.routeBase.trim()
+        : mountSuffixFromFile(ROUTES_ROOT, filePath);
 
     if (!router) {
       console.warn(
