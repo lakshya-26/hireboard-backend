@@ -16,6 +16,7 @@ const salarySchema = z
   );
 
 const contactSchema = z.object({
+  _id: z.string().trim().optional(),
   name: z.string().trim().min(1).max(120).optional(),
   role: z.string().trim().max(120).optional(),
   email: z.string().trim().toLowerCase().email().optional(),
@@ -52,8 +53,11 @@ export const applicationsQuerySchema = z.object({
   status: z.enum(APPLICATION_STATUSES).optional(),
   workType: z.enum(WORK_TYPES).optional(),
   priority: z.enum(PRIORITIES).optional(),
+  search: z.string().trim().max(200).optional(),
+  appliedFrom: z.coerce.date().optional(),
+  appliedTo: z.coerce.date().optional(),
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
+  limit: z.coerce.number().int().min(1).max(200).default(10),
   sortBy: z.enum(['appliedDate', 'createdAt', 'updatedAt']).default('appliedDate'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });

@@ -9,23 +9,29 @@ import { verifyAccessToken } from '../helpers/jwt.helper.js';
 export async function requireAuth(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ data: {}, message: 'Unauthorized' });
+    return res.status(401).json({ data: {}, message: 'Missing Authorization header' });
   }
 
   const token = header.slice('Bearer '.length).trim();
   if (!token) {
-    return res.status(401).json({ data: {}, message: 'Unauthorized' });
+    return res.status(401).json({ data: {}, message: 'Missing access token' });
   }
 
   let payload;
   try {
     payload = verifyAccessToken(token);
-  } catch {
-    return res.status(401).json({ data: {}, message: 'Unauthorized' });
+  } catch (err) {
+    if (err?.name === 'TokenExpiredError') {
+      return res.status(401).json({ data: {}, message: 'Access token expired' });
+    }
+    return res.status(401).json({
+      data: {},
+      message: 'Invalid access token',
+    });
   }
 
   if (!mongoose.Types.ObjectId.isValid(payload.sub)) {
-    return res.status(401).json({ data: {}, message: 'Unauthorized' });
+    return res.status(401).json({ data: {}, message: 'Invalid access token subject' });
   }
 
   try {
@@ -35,7 +41,10 @@ export async function requireAuth(req, res, next) {
     }).lean();
 
     if (!user) {
-      return res.status(401).json({ data: {}, message: 'Unauthorized' });
+      return res.status(401).json({
+        data: {},
+        message: 'User not found or account is inactive',
+      });
     }
 
     delete user.passwordHash;
