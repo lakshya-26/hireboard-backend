@@ -68,6 +68,8 @@ export async function registerRoutes(expressInstance) {
       continue;
     }
 
-    expressInstance.use(`${API_PREFIX}/${mountSuffix}`, router);
+    const mountPath = `${API_PREFIX}/${mountSuffix}`;
+    expressInstance.use(mountPath, router);
+    console.log(`[routes] ${mountPath}`);
   }
 }

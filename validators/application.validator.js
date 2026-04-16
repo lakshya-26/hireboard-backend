@@ -62,6 +62,9 @@ export const applicationsQuerySchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 
+/** Same filters as list, without pagination (used for CSV export). */
+export const applicationsExportQuerySchema = applicationsQuerySchema.omit({ page: true, limit: true });
+
 export function formatZodIssues(error) {
   return error.issues.map((issue) => ({
     field: issue.path.length ? issue.path.join('.') : 'root',
