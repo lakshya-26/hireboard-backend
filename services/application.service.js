@@ -17,6 +17,10 @@ function parseApplicationId(applicationId) {
   return applicationId;
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function buildListFilter(userId, query) {
   const filter = {
     userId,
@@ -26,6 +30,28 @@ function buildListFilter(userId, query) {
   if (query.status) filter.status = query.status;
   if (query.workType) filter.workType = query.workType;
   if (query.priority) filter.priority = query.priority;
+
+  const search = query.search?.trim();
+  if (search) {
+    const safe = escapeRegex(search);
+    filter.$or = [
+      { companyName: { $regex: safe, $options: 'i' } },
+      { role: { $regex: safe, $options: 'i' } },
+    ];
+  }
+
+  const appliedDate = {};
+  if (query.appliedFrom) {
+    appliedDate.$gte = query.appliedFrom;
+  }
+  if (query.appliedTo) {
+    const end = new Date(query.appliedTo);
+    end.setUTCHours(23, 59, 59, 999);
+    appliedDate.$lte = end;
+  }
+  if (Object.keys(appliedDate).length) {
+    filter.appliedDate = appliedDate;
+  }
 
   return filter;
 }
@@ -74,6 +100,9 @@ export async function getApplications(userId, queryParams) {
       status: parsed.data.status ?? null,
       workType: parsed.data.workType ?? null,
       priority: parsed.data.priority ?? null,
+      search: parsed.data.search?.trim() || null,
+      appliedFrom: parsed.data.appliedFrom ?? null,
+      appliedTo: parsed.data.appliedTo ?? null,
     },
   };
 }
