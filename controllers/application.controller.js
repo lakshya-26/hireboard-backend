@@ -81,3 +81,17 @@ export async function addNote(req, res) {
     return commonErrorHandler(req, res, error.message, error.statusCode, error);
   }
 }
+
+export async function exportCsv(req, res) {
+  try {
+    const { csv, filename } = await applicationService.getApplicationsCsvExport(
+      req.userId,
+      req.query,
+    );
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.status(200).send(csv);
+  } catch (error) {
+    return commonErrorHandler(req, res, error.message, error.statusCode, error);
+  }
+}

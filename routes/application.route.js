@@ -10,6 +10,7 @@ router.use(requireAuth);
 
 router.post('/', applicationController.create);
 router.get('/', applicationController.list);
+router.get('/export/csv', applicationController.exportCsv);
 router.get('/:id', applicationController.getOne);
 router.patch('/:id', applicationController.update);
 router.delete('/:id', applicationController.remove);
