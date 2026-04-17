@@ -6,6 +6,7 @@ export function serializeUser(userDoc) {
     id: userDoc._id.toString(),
     name: userDoc.name,
     email: userDoc.email,
+    isVerified: Boolean(userDoc.isVerified),
     createdAt: userDoc.createdAt,
   };
 }

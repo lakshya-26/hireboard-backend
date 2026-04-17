@@ -4,9 +4,12 @@ import cors from 'cors';
 import express from 'express';
 import mongoose from 'mongoose';
 import { assertAuthEnv } from './config/auth.js';
+import { assertOtpEmailEnv } from './config/otpEmail.js';
+import { closeRedis, getRedis } from './config/redis.js';
 import { connectDB } from './config/database.js';
 import './models/index.js';
 import { registerRoutes } from './routes/index.js';
+import { startReminderEmailCron, stopReminderEmailCron } from './jobs/reminderEmailCron.js';
 import { commonErrorHandler } from './utils/errorHandler.js';
 
 const app = express();
@@ -26,8 +29,10 @@ app.use(cookieParser());
 async function start() {
   try {
     assertAuthEnv();
+    assertOtpEmailEnv();
     await connectDB();
     await registerRoutes(app);
+    await getRedis();
 
     app.use((err, req, res, _next) => {
       console.error(err);
@@ -42,6 +47,7 @@ async function start() {
 
     app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);
+      startReminderEmailCron();
     });
   } catch (err) {
     console.error('Failed to start server:', err.message);
@@ -51,6 +57,8 @@ async function start() {
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
+  stopReminderEmailCron();
+  await closeRedis();
   await mongoose.connection.close();
   process.exit(0);
 });

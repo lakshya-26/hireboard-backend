@@ -8,14 +8,12 @@ export async function register(req, res) {
   try {
     const data = await authService.register(req.body);
 
-    setRefreshTokenCookie(res, data.refreshToken);
-
     req.statusCode = 201;
     req.data = {
-      accessToken: data.accessToken,
       user: data.user,
     };
-    req.message = 'Registration successful';
+    req.message =
+      'Account created. We sent a 6-digit verification code to your email. Verify before signing in.';
 
     return sendResponse(req, res);
   } catch (error) {
@@ -50,6 +48,30 @@ export async function refresh(req, res) {
     req.data = data;
     req.message = 'Token refreshed';
 
+    return sendResponse(req, res);
+  } catch (error) {
+    return commonErrorHandler(req, res, error.message, error.statusCode, error);
+  }
+}
+
+export async function sendOtp(req, res) {
+  try {
+    await authService.sendOtp(req.body);
+    req.statusCode = 200;
+    req.data = {};
+    req.message = 'We sent a new verification code to your email.';
+    return sendResponse(req, res);
+  } catch (error) {
+    return commonErrorHandler(req, res, error.message, error.statusCode, error);
+  }
+}
+
+export async function verifyOtp(req, res) {
+  try {
+    const data = await authService.verifyOtp(req.body);
+    req.statusCode = 200;
+    req.data = data;
+    req.message = 'Email verified. You can sign in now.';
     return sendResponse(req, res);
   } catch (error) {
     return commonErrorHandler(req, res, error.message, error.statusCode, error);

@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       select: false,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
     ...softDeleteField,
   },
   defaultSchemaOptions,
