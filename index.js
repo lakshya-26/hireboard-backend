@@ -1,16 +1,19 @@
-import 'dotenv/config';
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import express from 'express';
-import mongoose from 'mongoose';
-import { assertAuthEnv } from './config/auth.js';
-import { assertOtpEmailEnv } from './config/otpEmail.js';
-import { closeRedis, getRedis } from './config/redis.js';
-import { connectDB } from './config/database.js';
-import './models/index.js';
-import { registerRoutes } from './routes/index.js';
-import { startReminderEmailCron, stopReminderEmailCron } from './jobs/reminderEmailCron.js';
-import { commonErrorHandler } from './utils/errorHandler.js';
+import "dotenv/config";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import express from "express";
+import mongoose from "mongoose";
+import { assertAuthEnv } from "./config/auth.js";
+import { assertOtpEmailEnv } from "./config/otpEmail.js";
+import { closeRedis, getRedis } from "./config/redis.js";
+import { connectDB } from "./config/database.js";
+import "./models/index.js";
+import { registerRoutes } from "./routes/index.js";
+import {
+  startReminderEmailCron,
+  stopReminderEmailCron,
+} from "./jobs/reminderEmailCron.js";
+import { commonErrorHandler } from "./utils/errorHandler.js";
 
 const app = express();
 const PORT = Number(process.env.PORT);
@@ -25,6 +28,7 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+app.set("trust proxy", 1);
 
 async function start() {
   try {
@@ -50,13 +54,13 @@ async function start() {
       startReminderEmailCron();
     });
   } catch (err) {
-    console.error('Failed to start server:', err.message);
+    console.error("Failed to start server:", err.message);
     process.exit(1);
   }
 }
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   stopReminderEmailCron();
   await closeRedis();
   await mongoose.connection.close();
