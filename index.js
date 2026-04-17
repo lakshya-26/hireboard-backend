@@ -16,9 +16,9 @@ import {
 import { commonErrorHandler } from "./utils/errorHandler.js";
 
 const app = express();
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT);
 
-const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const clientOrigin = process.env.CLIENT_ORIGIN;
 
 app.use(
   cors({
